@@ -1,0 +1,25 @@
+{
+  "name": "sdc-products",
+  "version": "1.0.0",
+  "description": "database stuff",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "npx nodemon ./server/index.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/https-github-com-erikdantran/SDC-Products.git"
+  },
+  "author": "Taite Jernigan",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/https-github-com-erikdantran/SDC-Products/issues"
+  },
+  "homepage": "https://github.com/https-github-com-erikdantran/SDC-Products#readme",
+  "dependencies": {
+    "express": "^4.17.1",
+    "mysql2": "^2.3.3",
+    "nodemon": "^2.0.15"
+  }
+}

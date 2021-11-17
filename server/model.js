@@ -117,6 +117,12 @@ module.exports = {
                       break;
                     }
                   }
+                  if (obj.photos.length === 0) {
+                    obj.photos = [{ 'thumbnail_url': null, 'url': null }]
+                  }
+                  if (Object.keys(obj.skus).length === 0) {
+                    obj.skus = { 'null': { 'quantity': null, 'size': null} }
+                  }
                   data.results.push(obj)
                 };
                 cb(data)
@@ -126,5 +132,24 @@ module.exports = {
         })
       }
     })
+  },
+
+  getRelatedProducts: (id, cb) => {
+    let queryString = 'select * from related where current_product_id = ?';
+    let queryParams = [id];
+    connection.query(queryString, queryParams, (err, results) => {
+      if (err) {
+        throw err;
+      } else {
+        console.log(results)
+        var arr = []
+        for (let i = 0; i < results.length; i++) {
+          arr.push(results[i].related_product_id)
+        }
+        console.log(arr)
+        cb(arr)
+      }
+    })
   }
+
 }

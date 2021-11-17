@@ -4,7 +4,7 @@
   "description": "database stuff",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "jest --forceExit",
     "start": "npx nodemon ./server/index.js"
   },
   "repository": {
@@ -21,5 +21,9 @@
     "express": "^4.17.1",
     "mysql2": "^2.3.3",
     "nodemon": "^2.0.15"
+  },
+  "devDependencies": {
+    "jest": "^27.3.1",
+    "supertest": "^6.1.6"
   }
 }

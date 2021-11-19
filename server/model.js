@@ -13,19 +13,6 @@ module.exports = {
       if (err) {
         throw err;
       } else {
-        // let data = [];
-        // for (let i = 0; i < results.length; i++) {
-        //   var obj = {
-        //     id: results[i].id,
-        //     name: results[i].product_name,
-        //     slogan: results[i].slogan,
-        //     description: results[i].description,
-        //     category: results[i].category,
-        //     default_price: results[i].default_price
-        //   }
-        //   data.push(obj)
-        // }
-        // console.log(results)
         cb(results)
       }
     })
@@ -37,6 +24,26 @@ module.exports = {
     connection.query(queryString, queryParams, (err, results) => {
       if (err) {
         throw err;
+      } else if (results.length === 0) {
+        let justProudctQueryString = 'select * from products where id = ?'
+        connection.query(justProudctQueryString, queryParams, (err, productResults) => {
+          if (err) {
+            throw err
+          } else if (productResults.length === 0) {
+            return cb(404)
+          } else {
+            let data = {
+              id: id,
+              name: productResults[0].name,
+              slogan: productResults[0].slogan,
+              description: productResults[0].description,
+              category: productResults[0].category,
+              default_price: productResults[0].default_price,
+              features: []
+            };
+            cb(data)
+          }
+        })
       } else {
         let data = {
           id: id,
@@ -65,8 +72,9 @@ module.exports = {
     connection.query(queryString, queryParams, (err, results) => {
       if (err) {
         throw err;
+      } else if (results.length === 0){
+        return cb(404);
       } else {
-        //console.log(results)
         let data = {
           product_id: id,
           results: []
@@ -140,13 +148,13 @@ module.exports = {
     connection.query(queryString, queryParams, (err, results) => {
       if (err) {
         throw err;
+      } else if (results.length === 0) {
+        return cb(404)
       } else {
-        console.log(results)
         var arr = []
         for (let i = 0; i < results.length; i++) {
           arr.push(results[i].related_product_id)
         }
-        console.log(arr)
         cb(arr)
       }
     })

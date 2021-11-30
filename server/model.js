@@ -67,77 +67,63 @@ module.exports = {
   },
 
   getProductStyles: (id, cb) => {
-    let queryString = 'select * from styles where productId = ?';
-    let queryParams = [id];
+    let queryString = 'select * from (select s.id, s.`name`, s.sale_price, s.original_price, s.`default`, group_concat(k.size) sizes, group_concat(k.quantity) quantities, group_concat(k.skus_id) skuIds from styles s left join skus k on s.id = k.style_id where s.productId = ? group by s.id, s.`name`, s.sale_price, s.original_price, s.`default`) x join (select s.id, group_concat(p.url) urls, group_concat(p.thumbnail_url) thumbnail_urls from styles s left join photos p on s.id = p.style_id where s.productId = ? group by s.id) y where x.id = y.id';
+    let queryParams = [id, id];
+    let data = {
+      product_id: id,
+      results: []
+    };
     connection.query(queryString, queryParams, (err, results) => {
       if (err) {
         throw err;
       } else if (results.length === 0){
-        return cb(404);
+        return cb(data);
       } else {
-        let data = {
-          product_id: id,
-          results: []
-        };
-
-        let photoQueryString = 'select * from photos where style_id >= ? and style_id <= ?';
-        let photoQueryParams = [results[0].id, results[results.length - 1].id];
-        connection.query(photoQueryString, photoQueryParams, (photoErr, photoResults) => {
-          if (photoErr) {
-            throw photoErr;
-          } else {
-            let skuQueryString = 'select * from skus where style_id >= ? and style_id <= ?';
-            let skuQueryParams = [results[0].id, results[results.length - 1].id];
-            connection.query(skuQueryString, skuQueryParams, (skuErr, skuResults) => {
-              if (skuErr) {
-                throw skuErr;
-              } else {
-                for (let i = 0; i < results.length; i++) {
-                  var obj = {
-                    style_id: results[i].id,
-                    name: results[i].name,
-                    original_price: results[i].original_price,
-                    sale_price: results[i].sale_price === 'null' ? 0 : results[i].sale_price,
-                    'default?': results[i]['default?'],
-                    photos: [],
-                    skus: {}
-                  }
-                  for (let j = 0; j < photoResults.length; j) {
-                    if (photoResults[j].style_id === obj.style_id) {
-                      var photoObj = {
-                        url: photoResults[j].url,
-                        thumbnail_url: photoResults[j].thumbnail_url
-                      };
-                      obj.photos.push(photoObj);
-                      photoResults.splice(0, 1);
-                    } else {
-                      break;
-                    }
-                  }
-                  for (let h = 0; h < skuResults.length; h) {
-                    if (skuResults[h].style_id === obj.style_id) {
-                      obj.skus[skuResults[h].id] = {
-                        quantity: skuResults[h].quantity,
-                        size: skuResults[h].size
-                      };
-                      skuResults.splice(0, 1);
-                    } else {
-                      break;
-                    }
-                  }
-                  if (obj.photos.length === 0) {
-                    obj.photos = [{ 'thumbnail_url': null, 'url': null }]
-                  }
-                  if (Object.keys(obj.skus).length === 0) {
-                    obj.skus = { 'null': { 'quantity': null, 'size': null} }
-                  }
-                  data.results.push(obj)
-                };
-                cb(data)
-              }
-            })
+        for (let i = 0; i < results.length; i++) {
+          var obj = {
+            style_id: results[i].id,
+            name: results[i].name,
+            original_price: results[i].original_price,
+            sale_price: results[i].sale_price === 'null' ? 0 : results[i].sale_price,
+            default: results[i].default,
+            photos: [],
+            skus: {}
           }
-        })
+          if (results[i].urls !== null) {
+            let photoResults = {
+              url: results[i].urls.split(','),
+              thumbnail_url: results[i].thumbnail_urls.split(',')
+            }
+            for (let j = 0; j < photoResults.url.length; j++) {
+              var photoObj = {
+                url: photoResults.url[j],
+                thumbnail_url: photoResults.thumbnail_url[j]
+              };
+              obj.photos.push(photoObj);
+            }
+          }
+          if (results[i].skuIds !== null) {
+            let skuResults = {
+              id: results[i].skuIds.split(','),
+              size: results[i].sizes.split(','),
+              quantity: results[i].quantities.split(',')
+            }
+            for (let h = 0; h < skuResults.id.length; h++) {
+              obj.skus[skuResults.id[h]] = {
+                quantity: skuResults.quantity[h],
+                size: skuResults.size[h]
+              };
+            }
+          }
+          if (obj.photos.length === 0) {
+            obj.photos = [{ 'thumbnail_url': null, 'url': null }]
+          }
+          if (Object.keys(obj.skus).length === 0) {
+            obj.skus = { 'null': { 'quantity': null, 'size': null} }
+          }
+          data.results.push(obj)
+        };
+        cb(data)
       }
     })
   },

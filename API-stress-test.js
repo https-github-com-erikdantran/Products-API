@@ -1,11 +1,11 @@
 import http from 'k6/http';
 import { sleep, check } from 'k6';
 
-const url = 'http://localhost:5000/products/'
+const url = 'http://products-335870760.us-west-1.elb.amazonaws.com/products/'
 
 export const options = {
-  vus: 5,
-  duration: '30s',
+  vus: 250,
+  duration: '60s',
 };
 
 
@@ -34,5 +34,5 @@ export default function () {
     'transation time < 1000ms': r => r.timings.duration < 1000,
     'transation time < 2000ms': r => r.timings.duration < 2000,
   });
-  sleep(0.05);
+  sleep(0.5);
 };
